@@ -42,12 +42,14 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-
+#define FLASH_SEC2_BASE_ADDRESS 0x08008000
+void bootloader_jump_user_app(void);
 /* USER CODE END PV */
-
+int button_press;
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
+
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -85,6 +87,7 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
+
   /* USER CODE BEGIN 2 */
 
   /* USER CODE END 2 */
@@ -95,11 +98,36 @@ int main(void)
   {
     /* USER CODE END WHILE */
 	  HAL_GPIO_TogglePin(GPIOD, GPIO_PIN_12);
+	  if(button_press == 1)
+	  {
+		  bootloader_jump_user_app();
+		  button_press =0;
+		//  HAL_GPIO_TogglePin(GPIOD, GPIO_PIN_13);
+	  }
+	  HAL_Delay(1000);
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
 }
 
+
+
+
+void bootloader_jump_user_app(void)
+ {
+ 	void (*app_reset_handler) (void);
+
+ 	uint32_t msp_value = *(volatile uint32_t *)FLASH_SEC2_BASE_ADDRESS;
+
+ 	__set_MSP(msp_value);
+
+ 	uint32_t resethandler_address = *(volatile uint32_t *)(FLASH_SEC2_BASE_ADDRESS + 4);
+
+ 	app_reset_handler = (void*) resethandler_address;
+
+ 	app_reset_handler();
+
+ }
 /**
   * @brief System Clock Configuration
   * @retval None
@@ -113,7 +141,8 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
   //UNUSED(GPIO_Pin);
 	if(GPIO_Pin == GPIO_PIN_0)
 	{
-   HAL_GPIO_TogglePin(GPIOD, GPIO_PIN_15);
+		//HAL_GPIO_TogglePin(GPIOD, GPIO_PIN_15);
+		button_press = 1;
 	}
    // HAL_EXTI_ClearPending(hexti, Edge);
 
