@@ -217,9 +217,7 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f4xx_hal.h"
-#include "main.h"
 
-uint8_t Rx_Buffer[100];
 /** @addtogroup STM32F4xx_HAL_Driver
   * @{
   */
@@ -266,11 +264,6 @@ static HAL_StatusTypeDef UART_Receive_IT(UART_HandleTypeDef *huart);
 static HAL_StatusTypeDef UART_WaitOnFlagUntilTimeout(UART_HandleTypeDef *huart, uint32_t Flag, FlagStatus Status, uint32_t Tickstart, uint32_t Timeout);
 static void UART_SetConfig(UART_HandleTypeDef *huart);
 
-
-MAIN_RX_BUFFER Current_Rx_data;
-
-
-uint8_t Rx_Count=0;
 /**
   * @}
   */
@@ -1262,7 +1255,6 @@ HAL_StatusTypeDef HAL_UART_Receive_IT(UART_HandleTypeDef *huart, uint8_t *pData,
 
     /* Process Locked */
     __HAL_LOCK(huart);
-
 
     huart->pRxBuffPtr = pData;
     huart->RxXferSize = Size;
@@ -2997,8 +2989,6 @@ static HAL_StatusTypeDef UART_EndTransmit_IT(UART_HandleTypeDef *huart)
   */
 static HAL_StatusTypeDef UART_Receive_IT(UART_HandleTypeDef *huart)
 {
-	//_//_HAL_UART_FLUSH_DRREGISTER(&huart2);
-
   uint16_t *tmp;
 
   /* Check that a Rx process is ongoing */
@@ -3022,36 +3012,15 @@ static HAL_StatusTypeDef UART_Receive_IT(UART_HandleTypeDef *huart)
     {
       if (huart->Init.Parity == UART_PARITY_NONE)
       {
-
-       *huart->pRxBuffPtr = (uint8_t)(huart->Instance->DR & (uint8_t)0x00FF);
-        //Rx_Buffer1[Rx_Count]= *huart->pRxBuffPtr++;
-//       if(*huart->pRxBuffPtr == '\0')
-//       {
-//    	   Rx_Count=0;
-//    	   huart->pRxBuffPtr++;
-//       }
-//       else
-//       {
-//    	   huart->pRxBuffPtr++;
-//    	   Rx_Count++;
-//       }
-
-//        if( Rx_Buffer1[Rx_Count] == '\0')
-//        {
-//        	Rx_Count=0;
-//        }
-//        else
-//        	Rx_Count++;
-
-   }
+        *huart->pRxBuffPtr++ = (uint8_t)(huart->Instance->DR & (uint8_t)0x00FF);
+      }
       else
       {
-       *huart->pRxBuffPtr++ = (uint8_t)(huart->Instance->DR & (uint8_t)0x007F);
+        *huart->pRxBuffPtr++ = (uint8_t)(huart->Instance->DR & (uint8_t)0x007F);
       }
     }
-    huart->pRxBuffPtr++;
-    huart->RxXferCount--;
-    if ( huart->RxXferCount == 0U)
+
+    if (--huart->RxXferCount == 0U)
     {
       /* Disable the UART Data Register not empty Interrupt */
       __HAL_UART_DISABLE_IT(huart, UART_IT_RXNE);

@@ -27,20 +27,6 @@ extern "C" {
 
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f4xx_hal_def.h"
-#include "stm32f4xx_hal.h"
-
-//extern uint8_t Uart_Rx_Buffer[1024];
-extern uint8_t Rx_Count;
-extern uint8_t Rx_Buffer1[1024];
-
-typedef struct {
-
-	uint8_t Current_Rx_Buffer[1024];
-	uint16_t Current_Rx_Count;
-
-}MAIN_RX_BUFFER;
-
-extern MAIN_RX_BUFFER Current_Rx_data;
 
 /** @addtogroup STM32F4xx_HAL_Driver
   * @{
