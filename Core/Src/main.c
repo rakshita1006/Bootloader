@@ -19,6 +19,7 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "stm32f4xx_hal_uart.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -27,7 +28,7 @@
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
-
+UART_HandleTypeDef huart2;
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
@@ -49,7 +50,7 @@ int button_press;
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
-
+static void MX_USART2_UART_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -87,6 +88,7 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
+  MX_USART2_UART_Init();
 
   /* USER CODE BEGIN 2 */
 
@@ -97,9 +99,14 @@ int main(void)
   while (1)
   {
     /* USER CODE END WHILE */
+	  	HAL_UART_Transmit(&huart2,"Entering Bootloader", 20, 1000);
+	    HAL_Delay(5000);
+
 	  HAL_GPIO_TogglePin(GPIOD, GPIO_PIN_12);
 	  if(button_press == 1)
 	  {
+		  HAL_UART_Transmit(&huart2,"Bootloader_State", 20, 1000);
+		  HAL_Delay(5000);
 		  bootloader_jump_user_app();
 		  button_press =0;
 		//  HAL_GPIO_TogglePin(GPIOD, GPIO_PIN_13);
@@ -115,6 +122,8 @@ int main(void)
 
 void bootloader_jump_user_app(void)
  {
+	 HAL_UART_Transmit(&huart2,"Jumping from Bootloader to MainApp", 50, 1000);
+	 HAL_Delay(5000);
  	void (*app_reset_handler) (void);
 
  	uint32_t msp_value = *(volatile uint32_t *)FLASH_SEC2_BASE_ADDRESS;
@@ -149,6 +158,33 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 
 }
 
+static void MX_USART2_UART_Init(void)
+{
+
+  /* USER CODE BEGIN USART2_Init 0 */
+
+  /* USER CODE END USART2_Init 0 */
+
+  /* USER CODE BEGIN USART2_Init 1 */
+
+  /* USER CODE END USART2_Init 1 */
+  huart2.Instance = USART2;
+  huart2.Init.BaudRate = 115200;
+  huart2.Init.WordLength = UART_WORDLENGTH_8B;
+  huart2.Init.StopBits = UART_STOPBITS_1;
+  huart2.Init.Parity = UART_PARITY_NONE;
+  huart2.Init.Mode = UART_MODE_TX_RX;
+  huart2.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+  huart2.Init.OverSampling = UART_OVERSAMPLING_16;
+  if (HAL_UART_Init(&huart2) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN USART2_Init 2 */
+
+  /* USER CODE END USART2_Init 2 */
+
+}
 void SystemClock_Config(void)
 {
   RCC_OscInitTypeDef RCC_OscInitStruct = {0};
